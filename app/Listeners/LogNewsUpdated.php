@@ -2,7 +2,6 @@
 
 namespace App\Listeners;
 
-use App\Events\NewsCreated;
 use App\Events\NewsUpdated;
 use App\Models\Log;
 use Illuminate\Support\Facades\Auth;

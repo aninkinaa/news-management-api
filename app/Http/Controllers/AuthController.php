@@ -7,26 +7,16 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Exception;
+use App\Http\Requests\LoginRequest;
 
 class AuthController extends Controller
 {
  
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
         try {
-            $validator = Validator::make($request->all(), [
-                'email' => 'required|email',
-                'password' => 'required|string|min:6',
-            ]);
 
-            if ($validator->fails()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Invalid input',
-                    'errors' => $validator->errors()
-                ], 422);
-            }
-
+            $credentials = $request->validated();
             
             $credentials = $request->only('email', 'password');
 
@@ -39,7 +29,6 @@ class AuthController extends Controller
 
             $user = Auth::user();
 
-            
             $tokenResult = $user->createToken('API Token');
             $token = $tokenResult->accessToken;
 

@@ -11,6 +11,8 @@ use App\Repositories\Interfaces\NewsRepositoryInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use App\Http\Requests\StoreNewsRequest;
+use App\Http\Requests\UpdateNewsRequest;
 
 class NewsController extends Controller
 {
@@ -43,16 +45,13 @@ class NewsController extends Controller
     }
 
 
-    public function store(Request $request)
+    public function store(StoreNewsRequest $request)
     {
-        $data = $request->validate([
-            'title'   => 'required|string|max:255',
-            'content' => 'required|string',
-            'image'   => 'required|image|mimes:jpeg,png,jpg|max:2048',
-        ]);
+        $data = $request->validated();
 
         $data['image']   = $request->file('image')->store('news', 'public');
         $data['user_id'] = Auth::id();
+
 
         $news = $this->newsRepository->create($data);
 
@@ -76,13 +75,9 @@ class NewsController extends Controller
         return new NewsResource($news);
     }
 
-    public function update(Request $request, int $id)
+    public function update(UpdateNewsRequest $request, int $id)
     {
-        $data = $request->validate([
-            'title'   => 'sometimes|string|max:255',
-            'content' => 'sometimes|string',
-            'image'   => 'sometimes|image|mimes:jpeg,png,jpg|max:2048',
-        ]);
+        $data = $request->validated();
 
         $news = $this->newsRepository->findById($id);
 
