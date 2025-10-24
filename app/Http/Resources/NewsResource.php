@@ -21,8 +21,8 @@ class NewsResource extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
             'content' => $this->content,
-            'image_url' => $this->whenNotNull($this->image, Storage::url($this->image)),
-            'comments_count' => $this->when(isset($this->comments_count), $this->comments_count),
+            'image_url' => $this->when($this->image, fn() => Storage::url($this->image)),
+            'image_url' => $this->when($this->image, fn() => Storage::disk('public')->url($this->image)),
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
             'user' => new UserResource($this->whenLoaded('user')),
             'comments' => CommentResource::collection($this->whenLoaded('comments'))
