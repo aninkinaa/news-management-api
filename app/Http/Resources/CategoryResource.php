@@ -3,18 +3,21 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class UserResource extends JsonResource
+class CategoryResource extends JsonResource
 {
+    /**
+     * Transform the resource into an array.
+     *
+     * @return array<string, mixed>
+     */
     public function toArray(Request $request): array
     {
-
         return [
-            'id'   => $this->id,
+            'id' => $this->id,
             'name' => $this->name,
-            'profile_picture' => $this->when($this->profile_picture, fn() => Storage::disk('public')->url($this->profile_picture)),
+            'slug' => $this->slug,
         ];
     }
 }

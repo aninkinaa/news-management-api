@@ -2,17 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\News;
 use App\Events\NewsCreated;
 use App\Events\NewsDeleted;
 use App\Events\NewsUpdated;
+use Illuminate\Support\Str;
+use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\NewsResource;
-use App\Repositories\Interfaces\NewsRepositoryInterface;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\StoreNewsRequest;
+use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\UpdateNewsRequest;
+use App\Repositories\Interfaces\NewsRepositoryInterface;
 
 class NewsController extends Controller
 {
@@ -28,9 +30,10 @@ class NewsController extends Controller
         $filters = [
             'user_id' => $request->get('user_id'),
             'keyword' => $request->get('keyword'),
+            'category' => $request->get('category')
         ];
 
-        $news = $this->newsRepository->allPaginated(10, ['user'], $filters);
+        $news = $this->newsRepository->allPaginated(9, ['user', 'category'], $filters);
 
         $usedFilters = array_filter($filters);
 
@@ -51,27 +54,22 @@ class NewsController extends Controller
 
         $data['image']   = $request->file('image')->store('news', 'public');
         $data['user_id'] = Auth::id();
-
+        $data['slug']    = Str::slug($data['title']);
 
         $news = $this->newsRepository->create($data);
 
         event(new NewsCreated($news));
 
-        $news->load('user');
+        $news->load('user', 'category');
 
         return (new NewsResource($news))
             ->response()
             ->setStatusCode(201);
     }
 
-    public function show(int $id)
+    public function show(News $news)
     {
-        $news = $this->newsRepository->findWithComments($id);
-
-        if (! $news) {
-            return response()->json(['message' => 'News not found'], 404);
-        }
-
+        $news->load(['user', 'category', 'comments']);
         return new NewsResource($news);
     }
 
@@ -95,12 +93,16 @@ class NewsController extends Controller
             }
             $data['image'] = $request->file('image')->store('news', 'public');
         }
+        
+        if (isset($data['title'])) {
+            $data['slug'] = Str::slug($data['title']);
+        }
 
         $updatedNews = $this->newsRepository->update($id, $data);
 
         event(new NewsUpdated($updatedNews));
 
-        $updatedNews->load(['user', 'comments']);
+        $updatedNews->load(['user', 'comments', 'category']);
 
         return new NewsResource($updatedNews);
     }

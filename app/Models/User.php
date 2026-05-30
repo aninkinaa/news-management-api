@@ -3,10 +3,12 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Laravel\Passport\HasApiTokens;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Laravel\Passport\HasApiTokens;
 
 class User extends Authenticatable
 {
@@ -22,7 +24,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role'
+        'role',
+        'profile_picture'
     ];
 
     /**
@@ -46,6 +49,24 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    protected function name(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => $value === 'null' ? null : $value,
+        );
+    }
+
+    protected $appends = ['profile_picture_url'];
+
+    public function getProfilePictureUrlAttribute(): ?string
+    {
+        if ($this->profile_picture) {
+            return Storage::url($this->profile_picture);
+        }
+        
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=random';
     }
 
     public function news()

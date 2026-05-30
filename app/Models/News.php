@@ -14,7 +14,9 @@ class News extends Model
         'title',
         'content',
         'user_id',
-        'image'
+        'image',
+        'category_id',
+        'slug'
     ];
 
     public function user()
@@ -30,5 +32,10 @@ class News extends Model
     public function logs()
     {
         return $this->hasMany(Log::class);
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
     }
 }

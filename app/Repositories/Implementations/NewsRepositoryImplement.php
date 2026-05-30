@@ -15,7 +15,7 @@ class NewsRepositoryImplement implements NewsRepositoryInterface
         $this->model = $model;
     }
 
-    public function allPaginated(int $perPage = 10, array $relations = [], array $filters = []): LengthAwarePaginator
+    public function allPaginated(int $perPage = 9, array $relations = [], array $filters = []): LengthAwarePaginator
     {
         $query = $this->model->with($relations);
 
@@ -26,11 +26,18 @@ class NewsRepositoryImplement implements NewsRepositoryInterface
         }
 
         if (isset($filters['keyword'])) {
-           $keyword = $filters['keyword'];
+            $keyword = $filters['keyword'];
 
             $query->where(function ($q) use ($keyword) {
                 $q->where('title', 'like', '%' . $keyword . '%')
                   ->orWhere('content', 'like', '%' . $keyword . '%');
+            });
+        }
+
+        if (isset($filters['category'])) {
+            $slug = $filters['category'];
+            $query->whereHas('category', function ($q) use ($slug) {
+                $q->where('slug', $slug);
             });
         }
         
@@ -40,12 +47,17 @@ class NewsRepositoryImplement implements NewsRepositoryInterface
     public function findWithComments(int $id): ?News
     {
 
-        return $this->model->with(['comments', 'user'])->find($id);
+        return $this->model->with(['comments', 'user', 'category'])->find($id);
     }
 
     public function findById(int $id): ?News
     {
         return $this->model->find($id);
+    }
+
+    public function findBySlug(string $slug): ?News
+    {
+        return $this->model->with(['comments', 'user', 'category'])->where('slug', $slug)->first();
     }
 
     public function create(array $data): News
